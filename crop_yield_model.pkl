@@ -1,0 +1,33 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import joblib
+
+data = pd.DataFrame({
+    'Crop': ['Wheat', 'Rice', 'Maize', 'Wheat', 'Rice', 'Maize'] * 30,
+    'Region': ['Asia', 'Africa', 'Europe'] * 60,
+    'Soil_Type': ['Sandy', 'Loamy', 'Clay'] * 60,
+    'Rainfall': [300, 500, 700, 600, 400, 800] * 30,
+    'Temperature': [20, 25, 30, 22, 28, 26] * 30,
+    'Fertilizer_Used': [100, 150, 200, 180, 160, 220] * 30,
+    'Yield': [2.5, 3.0, 4.2, 3.5, 2.8, 4.0] * 30  # target (tons/hectare)
+})
+
+data_encoded = pd.get_dummies(data, columns=['Crop', 'Region', 'Soil_Type'])
+
+X = data_encoded.drop('Yield', axis=1)
+y = data_encoded['Yield']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+y_pred = rf_model.predict(X_test)
+print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f}")
+print(f"RMSE: {mean_squared_error(y_test, y_pred, squared=False):.2f}")
+print(f"R² Score: {r2_score(y_test, y_pred):.2f}")
+
+joblib.dump(rf_model, 'crop_yield_model.pkl')
+print("Model saved as crop_yield_model.pkl")
